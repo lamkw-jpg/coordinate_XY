@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直角坐標互動學習工具 (Cartesian Coordinates Interactive Tool)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #fffbeb;
+            color: #333;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            margin-bottom: 5px;
+            color: #b45309;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+        .subtitle {
+            font-size: 0.85rem;
+            color: #78350f;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .tab-btn {
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: #fde68a;
+            color: #78350f;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background-color: #d97706;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.3);
+        }
+        .container {
+            background: #fffdf5;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            max-width: 600px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 2px solid #fde68a;
+        }
+        .panel {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+        }
+        .panel.active {
+            display: flex;
+        }
+        canvas {
+            border: 2px solid #cbd5e1;
+            background-color: #ffffff;
+            border-radius: 8px;
+            cursor: crosshair;
+            touch-action: none;
+        }
+        .info-box {
+            margin-top: 12px;
+            padding: 10px 15px;
+            background: #fef3c7;
+            border-left: 5px solid #d97706;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            color: #78350f;
+        }
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 10px;
+            align-items: center;
+            background: #fef3c7;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .stat-item {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #78350f;
+        }
+        .btn {
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-danger { background-color: #dc2626; color: white; }
+        .btn-primary { background-color: #2563eb; color: white; }
+
+        .quiz-area {
+            width: 100%;
+            background: #fef9c3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 12px;
+            box-sizing: border-box;
+            border: 1px solid #fde047;
+        }
+        .answer-row {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .ans-box {
+            display: inline-block;
+            width: 45px;
+            height: 35px;
+            line-height: 35px;
+            text-align: center;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: 2px solid #ca8a04;
+        }
+        .ans-box-x { background-color: #a3e635; color: #1a2e05; }
+        .ans-box-y { background-color: #facc15; color: #422006; }
+
+        .keypad-row {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+        .key-btn {
+            flex: 1;
+            min-width: 28px;
+            height: 38px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: 1px solid rgba(0,0,0,0.15);
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+        }
+        .key-green { background-color: #a3e635; color: #1a2e05; }
+        .key-yellow { background-color: #facc15; color: #422006; }
+        .key-green:active, .key-yellow:active { transform: translateY(2px); box-shadow: none; }
+
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .btn-check {
+            background-color: #06b6d4;
+            color: white;
+            font-size: 1rem;
+            padding: 8px 20px;
+            font-weight: bold;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        .warning-text {
+            color: #dc2626;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        .feedback {
+            margin-top: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            min-height: 22px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>直角坐標互動學習工具 <span style="font-size:1rem; color:#78350f;">(Cartesian Coordinates)</span></h1>
+    <div class="subtitle">模式一：自由探索 ｜ 模式二：3分鐘計分測驗 ｜ 模式三：坐標連線對決 (Connect 3)</div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(0)">模式一：自由探索</button>
+        <button class="tab-btn" onclick="switchTab(1)">模式二：計分測驗</button>
+        <button class="tab-btn" onclick="switchTab(2)">模式三：坐標連線棋局 (Connect 3)</button>
+    </div>
+
+    <div class="container">
+        <!-- 模式一 -->
+        <div class="panel active" id="panel-0">
+            <canvas id="exploreCanvas" width="420" height="420"></canvas>
+            <div class="info-box" id="exploreInfo">
+                請在畫面上拖曳點 <b>P</b>，觀察坐標與投影虛線！
+            </div>
+        </div>
+
+        <!-- 模式二 -->
+        <div class="panel" id="panel-1">
+            <div class="quiz-header">
+                <div class="stat-item">分數 (Score) = <span id="scoreDisplay" style="color: #2563eb;">0</span></div>
+                <div class="stat-item">時間 (Time)：<span id="timerDisplay" style="color: #dc2626;">03:00</span></div>
+                <button class="btn btn-danger" onclick="resetQuiz()">重新計分</button>
+            </div>
+            <canvas id="quizCanvas" width="420" height="420"></canvas>
+            <div class="quiz-area">
+                <div class="answer-row">
+                    <span>點 P 的坐標是 (</span>
+                    <span id="displayX" class="ans-box ans-box-x" onclick="setActiveInput('x')" style="border: 3px solid #1d4ed8; cursor:pointer;"></span>
+                    <span>,</span>
+                    <span id="displayY" class="ans-box ans-box-y" onclick="setActiveInput('y')" style="cursor:pointer;"></span>
+                    <span>)</span>
+                    <span style="font-size: 0.85rem; color: #65a30d; margin-left:5px;">(點擊方格切換 X/Y)</span>
+                </div>
+                <div class="keypad-row">
+                    <span style="font-weight:bold; font-size:0.85rem; width:35px; display:flex; align-items:center; color:#3f6212;">X軸:</span>
+                    <button class="key-btn key-green" onclick="appendKey('x', '-')">-</button>
+                    <button class="key-btn key-green" onclick="appendKey('x', '1')">1</button>
+                    <button class="key-btn key-green" onclick="appendKey('x', '2')">2</button>
+                    <button class="key-btn key-green" onclick="appendKey('x', '3')">3</button>
+                    <button class="key-btn key-green" onclick="appendKey('x', '4')">4</button>
+                    <button class="key-btn key-green" onclick="appendKey('x', '5')">5</button>
+                    <button class="key-btn key-green" onclick="appendKey('x', '6')">6</button>
+                    <button class="key-btn key-green" onclick="appendKey('x', '7')">7</button>
+                    <button class="key-btn key-green" onclick="appendKey('x', '8')">8</button>
+                    <button class="key-btn key-green" onclick="appendKey('x', '9')">9</button>
+                    <button class="key-btn key-green" onclick="appendKey('x', '0')">0</button>
+                    <button class="key-btn key-green" onclick="clearKey('x')">C</button>
+                </div>
+                <div class="keypad-row">
+                    <span style="font-weight:bold; font-size:0.85rem; width:35px; display:flex; align-items:center; color:#713f12;">Y軸:</span>
+                    <button class="key-btn key-yellow" onclick="appendKey('y', '-')">-</button>
+                    <button class="key-btn key-yellow" onclick="appendKey('y', '1')">1</button>
+                    <button class="key-btn key-yellow" onclick="appendKey('y', '2')">2</button>
+                    <button class="key-btn key-yellow" onclick="appendKey('y', '3')">3</button>
+                    <button class="key-btn key-yellow" onclick="appendKey('y', '4')">4</button>
+                    <button class="key-btn key-yellow" onclick="appendKey('y', '5')">5</button>
+                    <button class="key-btn key-yellow" onclick="appendKey('y', '6')">6</button>
+                    <button class="key-btn key-yellow" onclick="appendKey('y', '7')">7</button>
+                    <button class="key-btn key-yellow" onclick="appendKey('y', '8')">8</button>
+                    <button class="key-btn key-yellow" onclick="appendKey('y', '9')">9</button>
+                    <button class="key-btn key-yellow" onclick="appendKey('y', '0')">0</button>
+                    <button class="key-btn key-yellow" onclick="clearKey('y')">C</button>
+                </div>
+                <div class="control-row">
+                    <button class="btn-check" onclick="checkAnswer()" id="submitBtn">提交 Check</button>
+                    <div class="warning-text">答錯會扣分，唔答都扣分！</div>
+                </div>
+            </div>
+            <div class="feedback" id="quizFeedback"></div>
+        </div>
+
+        <!-- 模式三：五子棋/連線棋對決 (Connect 3) -->
+        <div class="panel" id="panel-2">
+            <div class="quiz-header">
+                <div class="stat-item" id="turnDisplay" style="color: #dc2626;">紅方回合 (Red Turn)</div>
+                <button class="btn btn-primary" onclick="resetGame3()">重新開局 (Reset Game)</button>
+            </div>
+            <canvas id="game3Canvas" width="420" height="420"></canvas>
+            <div class="quiz-area" style="background:#e0f2fe; border-color:#bae6fd;">
+                <div class="answer-row">
+                    <span>輸入落子坐標 (</span>
+                    <span id="g3DisplayX" class="ans-box" style="background:#fca5a5; border:3px solid #b91c1c; cursor:pointer;" onclick="setG3Input('x')"></span>
+                    <span>,</span>
+                    <span id="g3DisplayY" class="ans-box" style="background:#fca5a5; cursor:pointer;" onclick="setG3Input('y')"></span>
+                    <span>)</span>
+                    <button class="btn-check" style="background:#0284c7; padding:6px 14px; font-size:0.9rem;" onclick="placePiece()">落子 (Place)</button>
+                    <span style="font-size: 0.8rem; color: #0369a1;">(點方格切換X/Y)</span>
+                </div>
+                <!-- 棋局專用鍵盤 -->
+                <div class="keypad-row">
+                    <button class="key-btn" style="background:#cbd5e1;" onclick="appendG3('-')">-</button>
+                    <button class="key-btn" style="background:#cbd5e1;" onclick="appendG3('1')">1</button>
+                    <button class="key-btn" style="background:#cbd5e1;" onclick="appendG3('2')">2</button>
+                    <button class="key-btn" style="background:#cbd5e1;" onclick="appendG3('3')">3</button>
+                    <button class="key-btn" style="background:#cbd5e1;" onclick="appendG3('4')">4</button>
+                    <button class="key-btn" style="background:#cbd5e1;" onclick="appendG3('5')">5</button>
+                    <button class="key-btn" style="background:#cbd5e1;" onclick="appendG3('6')">6</button>
+                    <button class="key-btn" style="background:#cbd5e1;" onclick="appendG3('7')">7</button>
+                    <button class="key-btn" style="background:#cbd5e1;" onclick="appendG3('8')">8</button>
+                    <button class="key-btn" style="background:#cbd5e1;" onclick="appendG3('9')">9</button>
+                    <button class="key-btn" style="background:#cbd5e1;" onclick="appendG3('0')">0</button>
+                    <button class="key-btn" style="background:#cbd5e1;" onclick="appendG3('C')">C</button>
+                </div>
+            </div>
+            <div class="feedback" id="game3Feedback">請輪流輸入坐標，率先將 3 子連成一線（橫、直、斜）者勝！</div>
+        </div>
+    </div>
+
+    <script>
+        const canvasSize = 420;
+        const scale = 24; 
+        const originX = canvasSize / 2;
+        const originY = canvasSize / 2;
+        const gridLimit = 8;
+
+        function switchTab(index) {
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            document.querySelectorAll('.panel').forEach((panel, i) => {
+                panel.classList.toggle('active', i === index);
+            });
+            if (index === 1 && !quizTimer && timeLeft > 0 && !isGameOver) {
+                startTimer();
+            }
+        }
+
+        function drawGrid(ctx) {
+            ctx.clearRect(0, 0, canvasSize, canvasSize);
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            for (let i = -gridLimit; i <= gridLimit; i++) {
+                let px = originX + i * scale;
+                let py = originY + i * scale;
+                ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, canvasSize); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(canvasSize, py); ctx.stroke();
+            }
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, originY); ctx.lineTo(canvasSize, originY);
+            ctx.moveTo(originX, 0); ctx.lineTo(originX, canvasSize);
+            ctx.stroke();
+
+            ctx.fillStyle = '#475569';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            for (let i = -gridLimit; i <= gridLimit; i++) {
+                if (i !== 0 && i % 2 === 0) {
+                    ctx.fillText(i, originX + i * scale, originY + 14);
+                    ctx.fillText(i, originX - 14, originY - i * scale);
+                }
+            }
+            ctx.fillText('0', originX - 9, originY + 11);
+            ctx.fillText('X', canvasSize - 12, originY - 14);
+            ctx.fillText('Y', originX + 14, 12);
+        }
+
+        // ==================== 模式一 ====================
+        const expCanvas = document.getElementById('exploreCanvas');
+        const expCtx = expCanvas.getContext('2d');
+        let pX = 3, pY = 2;
+        let isDragging = false;
+
+        function drawExplore() {
+            drawGrid(expCtx);
+            let screenX = originX + pX * scale;
+            let screenY = originY - pY * scale;
+
+            expCtx.setLineDash([4, 4]);
+            expCtx.strokeStyle = '#16a34a'; expCtx.lineWidth = 2;
+            expCtx.beginPath(); expCtx.moveTo(screenX, screenY); expCtx.lineTo(screenX, originY); expCtx.stroke();
+
+            expCtx.strokeStyle = '#ca8a04';
+            expCtx.beginPath(); expCtx.moveTo(screenX, screenY); expCtx.lineTo(originX, screenY); expCtx.stroke();
+            expCtx.setLineDash([]);
+
+            expCtx.fillStyle = '#dc2626';
+            expCtx.beginPath(); expCtx.arc(screenX, screenY, 7, 0, Math.PI * 2); expCtx.fill();
+            expCtx.strokeStyle = '#ffffff'; expCtx.lineWidth = 2; expCtx.stroke();
+
+            expCtx.fillStyle = '#dc2626';
+            expCtx.font = 'bold 13px sans-serif';
+            expCtx.fillText(`P(${pX}, ${pY})`, screenX + 22, screenY - 14);
+
+            document.getElementById('exploreInfo').innerHTML = 
+                `目前點 P 坐標 (Current Coordinates)：<b>(${pX}, ${pY})</b><br>` +
+                `<span style="color:#16a34a;">■ 綠色虛線指向 X 軸 (${pX})</span> | <span style="color:#ca8a04;">■ 黃色虛線指向 Y 軸 (${pY})</span>`;
+        }
+
+        function getMousePos(canvas, evt) {
+            let rect = canvas.getBoundingClientRect();
+            let clientX = evt.clientX || (evt.touches && evt.touches[0].clientX);
+            let clientY = evt.clientY || (evt.touches && evt.touches[0].clientY);
+            return {
+                x: Math.round((clientX - rect.left - originX) / scale),
+                y: Math.round((originY - (clientY - rect.top)) / scale)
+            };
+        }
+
+        expCanvas.addEventListener('mousedown', (e) => { isDragging = true; updatePos(e); });
+        expCanvas.addEventListener('mousemove', (e) => { if (isDragging) updatePos(e); });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        expCanvas.addEventListener('touchstart', (e) => { isDragging = true; updatePos(e); e.preventDefault(); });
+        expCanvas.addEventListener('touchmove', (e) => { if (isDragging) updatePos(e); e.preventDefault(); });
+        window.addEventListener('touchend', () => { isDragging = false; });
+
+        function updatePos(e) {
+            let pos = getMousePos(expCanvas, e);
+            if (pos.x >= -gridLimit && pos.x <= gridLimit && pos.y >= -gridLimit && pos.y <= gridLimit) {
+                pX = pos.x; pY = pos.y;
+                drawExplore();
+            }
+        }
+        drawExplore();
+
+        // ==================== 模式二 ====================
+        const quizCanvas = document.getElementById('quizCanvas');
+        const quizCtx = quizCanvas.getContext('2d');
+        let targetX = 2, targetY = -4;
+        let score = 0;
+        let timeLeft = 180;
+        let quizTimer = null;
+        let isGameOver = false;
+
+        let inputXStr = "";
+        let inputYStr = "";
+        let activeAxis = 'x';
+
+        function setActiveInput(axis) {
+            activeAxis = axis;
+            document.getElementById('displayX').style.border = (axis === 'x') ? '3px solid #1d4ed8' : '2px solid #ca8a04';
+            document.getElementById('displayY').style.border = (axis === 'y') ? '3px solid #1d4ed8' : '2px solid #ca8a04';
+        }
+
+        function appendKey(axis, val) {
+            if (axis === 'x') {
+                if (val === '-' && inputXStr.includes('-')) return;
+                inputXStr += val;
+                document.getElementById('displayX').innerText = inputXStr;
+            } else {
+                if (val === '-' && inputYStr.includes('-')) return;
+                inputYStr += val;
+                document.getElementById('displayY').innerText = inputYStr;
+            }
+        }
+
+        function clearKey(axis) {
+            if (axis === 'x') {
+                inputXStr = "";
+                document.getElementById('displayX').innerText = "";
+            } else {
+                inputYStr = "";
+                document.getElementById('displayY').innerText = "";
+            }
+        }
+
+        function nextQuestion() {
+            do {
+                targetX = Math.floor(Math.random() * 9) - 4;
+                targetY = Math.floor(Math.random() * 9) - 4;
+            } while (targetX === 0 && targetY === 0);
+
+            inputXStr = ""; inputYStr = "";
+            document.getElementById('displayX').innerText = "";
+            document.getElementById('displayY').innerText = "";
+            document.getElementById('quizFeedback').innerHTML = '';
+            drawQuiz();
+        }
+
+        function drawQuiz() {
+            drawGrid(quizCtx);
+            let screenX = originX + targetX * scale;
+            let screenY = originY - targetY * scale;
+
+            quizCtx.fillStyle = '#2563eb';
+            quizCtx.beginPath(); quizCtx.arc(screenX, screenY, 8, 0, Math.PI * 2); quizCtx.fill();
+            quizCtx.strokeStyle = '#ffffff'; quizCtx.lineWidth = 2; quizCtx.stroke();
+
+            quizCtx.fillStyle = '#2563eb';
+            quizCtx.font = 'bold 15px sans-serif';
+            quizCtx.fillText('P', screenX + 14, screenY - 14);
+        }
+
+        function startTimer() {
+            if (quizTimer) clearInterval(quizTimer);
+            quizTimer = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    let mins = Math.floor(timeLeft / 60);
+                    let secs = timeLeft % 60;
+                    document.getElementById('timerDisplay').innerText = 
+                        String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+                } else {
+                    clearInterval(quizTimer);
+                    isGameOver = true;
+                    document.getElementById('quizFeedback').innerHTML = '<span style="color:red;">⏰ 3分鐘時間到！測驗結束！</span>';
+                    document.getElementById('submitBtn').disabled = true;
+                }
+            }, 1000);
+        }
+
+        function checkAnswer() {
+            if (isGameOver) return;
+            let userX = parseInt(inputXStr);
+            let userY = parseInt(inputYStr);
+            let fb = document.getElementById('quizFeedback');
+
+            if (isNaN(userX) || isNaN(userY)) {
+                fb.innerHTML = '<span style="color:orange;">請完整輸入 X 和 Y 坐標！</span>';
+                return;
+            }
+
+            if (userX === targetX && userY === targetY) {
+                score += 10;
+                fb.innerHTML = '<span style="color:green;">🎉 答對了！加 10 分 (+10)</span>';
+                document.getElementById('scoreDisplay').innerText = score;
+                setTimeout(nextQuestion, 1200);
+            } else {
+                score = Math.max(0, score - 5);
+                fb.innerHTML = `<span style="color:red;">❌ 答錯了！正確答案是 (${targetX}, ${targetY})。扣 5 分 (-5)</span>`;
+                document.getElementById('scoreDisplay').innerText = score;
+                setTimeout(nextQuestion, 2000);
+            }
+        }
+
+        function resetQuiz() {
+            if (quizTimer) clearInterval(quizTimer);
+            score = 0; timeLeft = 180; isGameOver = false;
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('timerDisplay').innerText = '03:00';
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('quizFeedback').innerHTML = '';
+            startTimer();
+            nextQuestion();
+        }
+
+        drawQuiz();
+        startTimer();
+
+        // ==================== 模式三：坐標連線棋局 (Connect 3) ====================
+        const game3Canvas = document.getElementById('game3Canvas');
+        const game3Ctx = game3Canvas.getContext('2d');
+        let boardState = {}; 
+        let currentTurn = 'R'; 
+        let g3InputX = "";
+        let g3InputY = "";
+        let g3ActiveAxis = 'x';
+        let isGame3Over = false;
+
+        function setG3Input(axis) {
+            g3ActiveAxis = axis;
+            document.getElementById('g3DisplayX').style.border = (axis === 'x') ? '3px solid #b91c1c' : '2px solid #ca8a04';
+            document.getElementById('g3DisplayY').style.border = (axis === 'y') ? '3px solid #b91c1c' : '2px solid #ca8a04';
+        }
+
+        function appendG3(val) {
+            if (isGame3Over) return;
+            if (val === 'C') {
+                if (g3ActiveAxis === 'x') { g3InputX = ""; document.getElementById('g3DisplayX').innerText = ""; }
+                else { g3InputY = ""; document.getElementById('g3DisplayY').innerText = ""; }
+                return;
+            }
+            if (g3ActiveAxis === 'x') {
+                if (val === '-' && g3InputX.includes('-')) return;
+                g3InputX += val;
+                document.getElementById('g3DisplayX').innerText = g3InputX;
+            } else {
+                if (val === '-' && g3InputY.includes('-')) return;
+                g3InputY += val;
+                document.getElementById('g3DisplayY').innerText = g3InputY;
+            }
+        }
+
+        function drawGame3() {
+            drawGrid(game3Ctx);
+            for (let key in boardState) {
+                let parts = key.split(',');
+                let x = parseInt(parts[0]);
+                let y = parseInt(parts[1]);
+                let sx = originX + x * scale;
+                let sy = originY - y * scale;
+
+                game3Ctx.fillStyle = (boardState[key] === 'R') ? '#dc2626' : '#2563eb';
+                game3Ctx.beginPath(); game3Ctx.arc(sx, sy, 9, 0, Math.PI * 2); game3Ctx.fill();
+                game3Ctx.strokeStyle = '#ffffff'; game3Ctx.lineWidth = 2; game3Ctx.stroke();
+
+                game3Ctx.fillStyle = '#ffffff';
+                game3Ctx.font = 'bold 10px sans-serif';
+                game3Ctx.textAlign = 'center';
+                game3Ctx.textBaseline = 'middle';
+                game3Ctx.fillText((boardState[key] === 'R') ? '紅' : '藍', sx, sy);
+            }
+        }
+
+        function placePiece() {
+            if (isGame3Over) return;
+            let x = parseInt(g3InputX);
+            let y = parseInt(g3InputY);
+            let fb = document.getElementById('game3Feedback');
+
+            if (isNaN(x) || isNaN(y)) {
+                fb.innerHTML = '<span style="color:orange;">請完整輸入 X 和 Y 坐標！</span>';
+                return;
+            }
+
+            if (x < -6 || x > 6 || y < -6 || y > 6) {
+                fb.innerHTML = '<span style="color:red;">坐標超出範圍！請輸入 -6 到 6 之間的整數。</span>';
+                return;
+            }
+
+            let key = `${x},${y}`;
+            if (boardState[key]) {
+                fb.innerHTML = '<span style="color:red;">呢個位置已經有棋子啦！請選擇其他坐標。</span>';
+                return;
+            }
+
+            boardState[key] = currentTurn;
+            drawGame3();
+
+            if (checkWin(x, y, currentTurn)) {
+                let winnerName = (currentTurn === 'R') ? '🔴 紅方 (Red)' : '🔵 藍方 (Blue)';
+                fb.innerHTML = `<span style="color:green; font-size:1.1rem;">🎊 恭喜 ${winnerName} 成功將 3 子連成一線，勝出遊戲！</span>`;
+                document.getElementById('turnDisplay').innerText = "遊戲結束 (Game Over)";
+                isGame3Over = true;
+                return;
+            }
+
+            currentTurn = (currentTurn === 'R') ? 'B' : 'R';
+            let turnText = (currentTurn === 'R') ? '🔴 紅方回合 (Red Turn)' : '🔵 藍方回合 (Blue Turn)';
+            let turnColor = (currentTurn === 'R') ? '#dc2626' : '#2563eb';
+            let tDisplay = document.getElementById('turnDisplay');
+            tDisplay.innerText = turnText;
+            tDisplay.style.color = turnColor;
+
+            g3InputX = ""; g3InputY = "";
+            document.getElementById('g3DisplayX').innerText = "";
+            document.getElementById('g3DisplayY').innerText = "";
+            fb.innerHTML = `<span style="color:#0369a1;">落子成功！輪到 ${turnText}。</span>`;
+        }
+
+        function checkWin(lastX, lastY, player) {
+            let dirs = [
+                [1, 0],  // 橫
+                [0, 1],  // 直
+                [1, 1],  // 斜右上
+                [1, -1]  // 斜右下
+            ];
+
+            for (let [dx, dy] of dirs) {
+                let count = 1;
+                let cx = lastX + dx, cy = lastY + dy;
+                while (boardState[`${cx},${cy}`] === player) {
+                    count++;
+                    cx += dx; cy += dy;
+                }
+                cx = lastX - dx; cy = lastY - dy;
+                while (boardState[`${cx},${cy}`] === player) {
+                    count++;
+                    cx -= dx; cy -= dy;
+                }
+                if (count >= 3) return true;
+            }
+            return false;
+        }
+
+        function resetGame3() {
+            boardState = {};
+            currentTurn = 'R';
+            isGame3Over = false;
+            g3InputX = ""; g3InputY = "";
+            document.getElementById('g3DisplayX').innerText = "";
+            document.getElementById('g3DisplayY').innerText = "";
+            let tDisplay = document.getElementById('turnDisplay');
+            tDisplay.innerText = "🔴 紅方回合 (Red Turn)";
+            tDisplay.style.color = '#dc2626';
+            document.getElementById('game3Feedback').innerHTML = "新棋局開始！請紅方輸入坐標落子。";
+            drawGame3();
+        }
+
+        drawGame3();
+    </script>
+</body>
+</html>
